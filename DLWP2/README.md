@@ -1,1 +1,1 @@
-** DEEP LEARNING WITH PYTHON (2nd edition)
+# DEEP LEARNING WITH PYTHON (2nd edition) PlayAlong
