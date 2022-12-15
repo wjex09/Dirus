@@ -4,6 +4,25 @@ import os
 import sys
 import time
 
+
+
+def load(img):
+  # preprocess
+
+  aspect_ratio = img.size[0]/img.size[1]
+  img = img.resize((int(224*max(aspect_ratio,1.0)), int(224*max(1.0/aspect_ratio,1.0))))
+
+  img = np.array(img)
+  ydim,xdim=(np.asarray(img.shape)[:2]-224)//2
+  retimg = img = img[ydim:ydim+224, xdim:xdim+224]
+  #print(img)
+
+  import matplotlib.pyplot as plt
+  plt.imshow(img)
+  plt.show()
+
+
+
 if __name__ == "__main__":
 
   import ast
@@ -12,4 +31,9 @@ if __name__ == "__main__":
 
   #print(lbls)
 
+  arg = sys.argv[1]
   from PIL import Image
+  img = Image.open(arg)
+
+  load(img)
+
