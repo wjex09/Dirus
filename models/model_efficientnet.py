@@ -14,8 +14,8 @@ def glorot_uniform(cls, *shape, **kwargs): return cls((np.random.default_rng().r
 
 class MBConvBlock :
   def __init__(self,kernel_size,strides,expand_ratio,input_filters,output_filters,se_ratio,has_se,track_running_stats = True):
+    oup = expand_ratio*input_filters #number of output channels
     if expand_ratio != 1 :
-      oup = expand_ratio*input_filters #number of output channels
       self._expand_ratio = nn.init.xavier_uniform_(oup,input_filters,1,1)
       self._bn0 = nn.BatchNorm2d(oup,track_running_stats = track_running_stats)
     else :
@@ -123,7 +123,7 @@ class EfficientNet:
         [1, 9, (8,8), 1, 32, 320, 0.25],
       ]
 
-    self._block = []
+    self._blocks = []
     for num_repeats, kernel_size, strides, expand_ratio, input_filters, output_filters, se_ratio in blocks_args:
       input_filters, output_filters = round_filters(input_filters), round_filters(output_filters)
       for n in range(round_repeats(num_repeats)):
@@ -133,6 +133,22 @@ class EfficientNet:
 
     in_channels = round_filters(320)
     out_channels = round_filters(1280)
+    self._conv_head = nn.init.xavier_uniform_(out_channels, in_channels, 1, 1)
+    self._bn1 = nn.BatchNorm2d(out_channels, track_running_stats=track_running_stats)
+    if has_fc_output:
+      self._fc = nn.init.xavier_uniform_(out_channels, classes)
+      self._fc_bias = torch.zeros(classes)
+    else:
+      self._fc = None
+
+  def forward(self, x):
+    x = self._bn0(nn.Conv2d(self._conv_stem, padding=(0,1,0,1), stride=2)).swish()
+    x = x.sequential(self._blocks)
+    x = swish(self._bn1(nn.Conv2d(self._conv_head)))
+    x = nn.Avg_Pool2d(kernel_size=x.shape[2:4])
+    x = torch.reshape(x,(-1, x.shape[1]))
+    linear = nn.Linear(self._fc,self._fc_bias)
+    return linear(x) if self._fc is not None else x
 
     def load_from_pretrained(self):
       model_urls = {

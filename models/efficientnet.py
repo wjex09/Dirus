@@ -3,7 +3,7 @@ import numpy as np
 import os
 import sys
 import time
-
+from model_efficientnet import EfficientNet
 
 
 def load(img):
@@ -24,6 +24,9 @@ def load(img):
 
 
 if __name__ == "__main__":
+
+  model = EfficientNet(int(os.getenv("NUM", "0")))
+  model.load_from_pretrained()
 
   import ast
   lbls = fetch("https://gist.githubusercontent.com/yrevar/942d3a0ac09ec9e5eb3a/raw/238f720ff059c1f82f368259d1ca4ffa5dd8f9f5/imagenet1000_clsidx_to_labels.txt")
