@@ -6,17 +6,32 @@ import math
 #(EfficientNet) : https://arxiv.org/pdf/1905.11946v5.pdf
 
 '''
+#glorot_uniform (tf),xavier_uniform_ init weights
 @classmethod
 # https://www.tensorflow.org/api_docs/python/tf/keras/initializers/GlorotUniform
 def glorot_uniform(cls, *shape, **kwargs): return cls((np.random.default_rng().random(size=shape, dtype=np.float32) * 2 - 1) * ((6/(shape[0]+prod(shape[1:])))**0.5), **kwargs)
 '''
 
 
+#TODO:  fix init,conv2d,Batchnorm2d
+
+
+
+
+
+
+swish = nn.SiLU()
+
+
+
+
+
 class MBConvBlock :
   def __init__(self,kernel_size,strides,expand_ratio,input_filters,output_filters,se_ratio,has_se,track_running_stats = True):
     oup = expand_ratio*input_filters #number of output channels
     if expand_ratio != 1 :
-      self._expand_ratio = nn.init.xavier_uniform_(oup,input_filters,1,1)
+      #self._expand_ratio = nn.init.xavier_uniform_(oup,input_filters,1,1)
+      self._expand_ratio = nn.Conv2d(oup,input_filters,1,1)
       self._bn0 = nn.BatchNorm2d(oup,track_running_stats = track_running_stats)
     else :
       self._expand_conv = None
@@ -27,36 +42,38 @@ class MBConvBlock :
     else :
       self.pad =  [(kernel_size-1)//2]*4
 
-    self._depthwise_conv = nn.init.xavier_uniform_(oup,1,kernel_size,kernel_size)
+    self._depthwise_conv = nn.Conv2d(oup,1,kernel_size,kernel_size)
     self._bn1 = nn.BatchNorm2d(oup,track_running_stats = track_running_stats)
 
     self.has_se = has_se
 
     if self.has_se :
       num_squeezed_channels = max(1, int(input_filters * se_ratio))
-      self._se_reduce = nn.init.xavier_uniform_(num_squeezed_channels, oup, 1, 1)
+      self._se_reduce = nn.Conv2d(num_squeezed_channels, oup, 1, 1)
       self._se_reduce_bias = torch.zeros(num_squeezed_channels)
-      self._se_expand = nn.init.xavier_uniform_(oup, num_squeezed_channels, 1, 1)
+      self._se_expand = nn.Conv2d(oup, num_squeezed_channels, 1, 1)
       self._se_expand_bias = torch.zeros(oup)
 
 
-    self._project_conv = nn.init.xavier_uniform_(output_filters, oup, 1, 1)
+    self._project_conv = nn.Conv2d(output_filters, oup, 1, 1)
     self._bn2 = nn.BatchNorm2d(output_filters, track_running_stats=track_running_stats)
 
 
-  swish = nn.SiLU()
 
   def __call__(self,inputs):
     x = inputs
     if self._expand_conv :
-      x = swish(self._bn0(x.Conv2d(self._expand_conv)))
+      x = swish(self._bn0(nn.Conv2d(self._expand_conv)))
 
-    x = x.Conv2d(self._depthwise_conv, padding=self.pad, stride=self.strides, groups=self._depthwise_conv.shape[0])
+    x = nn.Conv2d(self._depthwise_conv, padding=self.pad, stride=self.strides, groups=self._depthwise_conv.shape[0])
     x = swish(self._bn1(x))
 
     if self.has_se:
       x_squeezed = nn.Avg_Pool2d(kernel_size=x.shape[2:4])
-      x_squeezed = x_squeezed.Conv2d(self._se_reduce, self._se_reduce_bias).swish()
+
+      #x_squeezed = x_squeezed.Conv2d(self._se_reduce, self._se_reduce_bias).swish()
+      x_squeezed = swish(x_squeezed.Conv2d(self._se_reduce, self._se_reduce_bias))
+
       x_squeezed = x_squeezed.Conv2d(self._se_expand, self._se_expand_bias)
       x = torch.mul(x,torch.sigmoid(x_squeezed))
 
@@ -133,24 +150,25 @@ class EfficientNet:
 
     in_channels = round_filters(320)
     out_channels = round_filters(1280)
-    self._conv_head = nn.init.xavier_uniform_(out_channels, in_channels, 1, 1)
+    #self._conv_head = nn.init.xavier_uniform_(out_channels, in_channels, 1, 1)
+    self._conv_head = nn.Conv2d(out_channels, in_channels, 1, 1)
     self._bn1 = nn.BatchNorm2d(out_channels, track_running_stats=track_running_stats)
     if has_fc_output:
-      self._fc = nn.init.xavier_uniform_(out_channels, classes)
+      self._fc = nn.Conv2d(out_channels,classes,kernel_size)
       self._fc_bias = torch.zeros(classes)
     else:
       self._fc = None
 
   def forward(self, x):
-    x = self._bn0(nn.Conv2d(self._conv_stem, padding=(0,1,0,1), stride=2)).swish()
+    x = swish(self._bn0(nn.Conv2d(self._conv_stem, padding=(0,1,0,1), stride=2)))
     x = x.sequential(self._blocks)
     x = swish(self._bn1(nn.Conv2d(self._conv_head)))
     x = nn.Avg_Pool2d(kernel_size=x.shape[2:4])
     x = torch.reshape(x,(-1, x.shape[1]))
     linear = nn.Linear(self._fc,self._fc_bias)
-    return linear(x) if self._fc is not None else x
+    return nn.linear(x) if self._fc is not None else x
 
-    def load_from_pretrained(self):
+  def load_from_pretrained(self):
       model_urls = {
         0: "https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/efficientnet-b0-355c32eb.pth",
         1: "https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/efficientnet-b1-f1951068.pth",

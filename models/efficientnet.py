@@ -6,7 +6,7 @@ import time
 from model_efficientnet import EfficientNet
 
 
-def load(img):
+def load(model,img):
   # preprocess
 
   aspect_ratio = img.size[0]/img.size[1]
@@ -17,9 +17,14 @@ def load(img):
   retimg = img = img[ydim:ydim+224, xdim:xdim+224]
   #print(img)
 
+  '''
   import matplotlib.pyplot as plt
   plt.imshow(img)
   plt.show()
+
+  '''
+  #do a forward pass
+
 
 
 
@@ -40,3 +45,4 @@ if __name__ == "__main__":
 
   load(img)
 
+  print(np.argmax(out.data), np.max(out.data), lbls[np.argmax(out.data)])
