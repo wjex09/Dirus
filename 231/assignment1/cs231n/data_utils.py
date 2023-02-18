@@ -260,7 +260,8 @@ def load_imagenet_val(num=None):
         print("cd cs231n/datasets")
         print("bash get_imagenet_val.sh")
         assert False, "Need to download imagenet_val_25.npz"
-
+    
+    # modify to 
     # modify the default parameters of np.load
     # https://stackoverflow.com/questions/55890813/how-to-fix-object-arrays-cannot-be-loaded-when-allow-pickle-false-for-imdb-loa
     np_load_old = np.load
