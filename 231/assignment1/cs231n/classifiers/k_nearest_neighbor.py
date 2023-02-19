@@ -76,8 +76,7 @@ class KNearestNeighbor(object):
                 # not use a loop over dimension, nor use np.linalg.norm().          #
                 #####################################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-                pass
+                dists[i,j] = np.sqrt(np.sum(np.square(X[i,:]-self.X_train[j,:]))) 
 
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -100,9 +99,7 @@ class KNearestNeighbor(object):
             # Do not use np.linalg.norm().                                        #
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            dists[i:] = np.sqrt(np.sum(np.square(X[i,:]-self.X_train),axis = 1))
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -131,8 +128,12 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        #dists = np.sqrt(np.sum(np.square(self.X_train - X))) why so stupid 
 
+        #should be xtrain^2 + x^2 sums - 2*xtrain*x from hint what i think and also broadcasted 
+        sum = np.sum(np.square(self.X_train),axis = 1) + np.sum(np.square(X),axis = 1).reshape(-1,1) 
+        prod = np.dot(X,self.X_train.T) 
+        dists = np.sqrt(sum - 2*prod)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -163,9 +164,8 @@ class KNearestNeighbor(object):
             # Hint: Look up the function numpy.argsort.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            sorted_dist =  np.argsort(dists[i,:],0)
+            closest_y = self.y_train[sorted_dist[:k]]
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
             # TODO:                                                                 #
@@ -176,8 +176,7 @@ class KNearestNeighbor(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
-
+            y_pred[i] = np.argmax(np.bincount(closest_y))
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return y_pred
