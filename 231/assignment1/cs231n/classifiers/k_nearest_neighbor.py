@@ -131,8 +131,8 @@ class KNearestNeighbor(object):
         #dists = np.sqrt(np.sum(np.square(self.X_train - X))) why so stupid 
 
         #should be xtrain^2 + x^2 sums - 2*xtrain*x from hint what i think and also broadcasted  
-        print(np.sum(np.square(self.X_train),axis = 1).shape )
-        print(np.sum(np.square(X),axis = 1).shape )
+        # print(np.sum(np.square(self.X_train),axis = 1).shape )
+        # print(np.sum(np.square(X),axis = 1).shape )
         sum = np.sum(np.square(self.X_train),axis = 1) + np.sum(np.square(X),axis = 1).reshape(-1,1) 
         prod = np.dot(X,self.X_train.T) 
         dists = np.sqrt(sum - 2*prod)
