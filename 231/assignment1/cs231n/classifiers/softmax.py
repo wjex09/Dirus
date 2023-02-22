@@ -34,9 +34,30 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    print(X.shape)
+    dims = W.shape[0] 
+    nums = W.shape[1] 
+    
+    for i in xrange (X.shape[0]):    
+      xW = X[i,:].dot(W)   
+      #normalization trick : https://cs231n.github.io/linear-classify/#softmax-classifier  
+      #log C = max fj
+      xW -= np.max(xW)
+      exp_xW = np.exp(xW) 
+      prob = exp_xW/np.sum(exp_xW)  
+      #print(prob)
+      for d in xrange(dims) : 
+        for c in xrange(nums): 
+          if c == y[i] :
+            dW[d,c] += X.T[d,i]*(prob[c]-1) 
+          else: 
+            dW[d,c] += X.T[d,i] * (prob[c])
 
+      loss += -np.log(prob[y[i]])
 
+    loss = loss / X.shape[0] 
+    loss +=  0.5 * reg * np.sum(W**2) 
+    dW = dW/X.shape[0]
+    dW += reg * W
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
