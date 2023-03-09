@@ -79,8 +79,11 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
-    f = X@W 
+    N =  len(y)
+    f = X@W  
+    f_true =  f[range(N),y][:,np.newaxis] 
+    margins =  np.maximum(0,f-f_true + 1) 
+    loss = margins.sum() / N - 1 +  reg * np.sum(W**2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,9 +96,11 @@ def svm_loss_vectorized(W, X, y, reg):
     # to reuse some of the intermediate values that you used to compute the     #
     # loss.                                                                     #
     #############################################################################
-    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
 
-    pass
+    dW = (margins>0).astype(int) 
+    dW[range(N),y] -= dW.sum(axis = 1) 
+    dW = X.T @ dW / N + 2 * reg * W 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
