@@ -63,7 +63,12 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    row_dim ,col_dim  = x.shape[0]  , np.prod(x.shape[1:]) 
+    X= x.reshape(row_dim,col_dim) 
+
+    dx = dout.dot(w.T).reshape(x.shape)                                                    
+    dw = X.T.dot(dout)
+    db = np.sum(dout,axis = 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -89,7 +94,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.maximum(0,x) 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
