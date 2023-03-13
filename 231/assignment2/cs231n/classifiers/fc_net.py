@@ -72,9 +72,16 @@ class FullyConnectedNet(object):
         # beta2, etc. Scale parameters should be initialized to ones and shift     #
         # parameters should be initialized to zeros.                               #
         ############################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
 
-        pass
+
+
+        for i , (r,c) in enumerate(zip([input_dim,*hidden_dims],[hidden_dims,num_classes])):   
+            self.params[f'W{i+1}'] = np.random.rand(r,c) * weight_scale 
+            self.params[f'b{i+1}'] = np.zeros(j) 
+            if self.normalization and i <  self.num_layers - 1 : 
+                self.params[f'gamma{i+1}'] = np.ones(c)  
+                self.params[f'beta{i+1}']  = np.zeros(c)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -148,7 +155,6 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
