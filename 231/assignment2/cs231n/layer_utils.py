@@ -28,7 +28,52 @@ def affine_relu_backward(dout, cache):
 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-pass
+def forward_pass(x,w,b,gamma = None, beta = None ,bn_param = None, dropout_param = None , last = False):  
+  """
+      returns (out, cache)  
+      output from droput , cache to provide to backward_pass
+  """
+  bn_cache = None
+  dropout_cache = None 
+  out , fc_cache = affine_forward(x,w,b) 
+  ln_cache = None # layernorm cache 
+  relu_cache = None
+  if not last : # this shouldn't be the last layer 
+      if bn_param is not None :
+          if 'mode' in bn_param : 
+              out , bn_cache = batchnorm_forward(out,gamma,beta, bn_param) 
+          else :
+              out ,ln_cache = layernorm_forward(out , gamma , beta , bn_param)
+          
+      out , relu_cache =  relu_forward(out)
+
+      if dropout_param is not None:
+          out , dropout_cache = dropout_forward(out, dropout_param)
+
+  cache = fc_cache,bn_cache,ln_cache,relu_cache,dropout_cache
+
+  return out,cache
+
+def backward_pass(dout , cache):  
+  dgamma , dbeta = None, None
+  fc_cache, bn_cache, ln_cache, relu_cache, dropout_cache = cache
+ 
+  if dropout_cache is not None: 
+    dout = dropout_backward(dout,dropout_cache)
+
+  if relu_cache is not None: 
+    dout = relu_backward(dout, relu_cache)
+
+  if bn_cache is not None:  
+    dout ,dgamma,dbeta = batchnorm_backward_alt(dout, bn_cache)
+  else : 
+    dout , dgamma ,dbeta = layernorm_backward(dout, ln_cache)
+    
+  dx , dw , db  = affine_backward(dout,fc_cache)
+
+  return dx,dw,db,dgamma,dbeta
+
+
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
