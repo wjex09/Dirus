@@ -76,12 +76,14 @@ class FullyConnectedNet(object):
 
 
 
-        for i , (r,c) in enumerate(zip([input_dim,*hidden_dims],[hidden_dims,num_classes])):   
-            self.params[f'W{i+1}'] = np.random.rand(r,c) * weight_scale 
-            self.params[f'b{i+1}'] = np.zeros(j) 
-            if self.normalization and i <  self.num_layers - 1 : 
+        for i , (r,c) in enumerate(zip([input_dim,*hidden_dims],[*hidden_dims,num_classes])):   
+            self.params[f'W{i+1}'] = np.random.randn(r,c) * weight_scale 
+            self.params[f'b{i+1}'] = np.zeros(c) 
+            if self.normalization and i < self.num_layers - 1 : 
                 self.params[f'gamma{i+1}'] = np.ones(c)  
-                self.params[f'beta{i+1}']  = np.zeros(c)
+                self.params[f'beta{i+1}']  = np.zeros(c) 
+
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -155,6 +157,16 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+        cache = {} 
+        for i in range(self.num_layers) : 
+            keys = [f'W{i+1}', f'b{i+1}', f'gamma{i+1}' , f'beta{i+1}'] 
+            w , b , gamma , beta = (self.params.get(k,None) for k in keys)  
+            bnorm = self.bn_params[i] if gamma is not None else None
+            dropout = self.dropout_param if self.use_dropout else None  
+            
+            X,cache[i]  = generic_forward(X,w,b,gamma,beta,bnorm,dropout, i == self.num_layers-1) 
+
+        scores = X 
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -181,7 +193,22 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss , dout = softmax_loss(scores, y) 
+        loss += 0.5 * self.reg * np.sum([np.sum(W**2) for k , W in self.params.items() if 'W' in k]) 
+
+
+        for l in reversed(range(self.num_layers)):
+            dout, dW, db, dgamma, dbeta = generic_backward(dout, cache[l])
+
+            grads[f'W{l+1}'] = dW + self.reg * self.params[f'W{l+1}']
+            grads[f'b{l+1}'] = db
+
+            if dgamma is not None and l < self.num_layers-1:
+                grads[f'gamma{l+1}'] = dgamma
+                grads[f'beta{l+1}'] = dbeta
+
+
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
