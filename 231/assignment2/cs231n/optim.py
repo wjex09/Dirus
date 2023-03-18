@@ -157,7 +157,7 @@ def adam(w, dw, config=None):
 
     config['t'] += 1
 
-    config['m']= config['beta1'] * config['m'] + (1-config['beta1']) * dw 
+    config['m'] = config['beta1'] * config['m'] + (1-config['beta1']) * dw 
     mt = config['m']/(1-config['beta1']**config['t']) 
 
     config['v'] = config['beta2'] * config['v'] + (1-config['beta2']) * dw**2 
