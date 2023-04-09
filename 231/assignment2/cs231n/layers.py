@@ -224,9 +224,23 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # Referencing the original paper (https://arxiv.org/abs/1502.03167)   #
         # might prove to be helpful.                                          #
         #######################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
 
-        pass      
+        mu = x.mean(axis = 0) 
+        var = x.var(axis = 0)
+        std = np.sqrt(var + eps) 
+        x_hat = (x - mu)/std 
+
+        out = gamma * x_hat + beta 
+
+        shape = bn_param.get('shape', (N,D)) 
+        axis = bn_param.get('axis',0) 
+        cache =  x , mu , var ,std , gamma, x_hat, shape ,axis # use while backprop  
+
+        # if not batchnorm  update overall mean and var
+        if axis == 0: 
+            running_mean = momentum * running_mean  +  (1-momentum) *  mu 
+            running_var =  momentum *  running_var + (1-momentum) * var
        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -241,7 +255,10 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+
+        x_hat = (x-running_mean)/np.sqrt(running_var+eps)   
+        out = gamma*x_hat + beta
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -281,8 +298,6 @@ def batchnorm_backward(dout, cache):
     # might prove to be helpful.                                              #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    # https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
 
     pass
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -479,7 +494,7 @@ def dropout_backward(dout, cache):
         # TODO: Implement training phase backward pass for inverted dropout   #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
