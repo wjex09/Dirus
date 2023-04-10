@@ -298,8 +298,23 @@ def batchnorm_backward(dout, cache):
     # might prove to be helpful.                                              #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+ 
+    #cache =  x , mu , var ,std , gamma, x_hat, shape ,axis # use while backprop   
+    x, mu , var , std , gamma , x_hat , shape , axis = cache   
+    dgamma = (dout * x_hat).reshape(shape , order = 'F').sum(axis)
+    dbeta = dout.reshape(shape, order = 'F').sum(axis) 
 
-    pass
+    dx_hat = dout * gamma 
+    dstd = -1 *  np.sum(dx_hat * (x-mu), axis=0)/(std**2) 
+
+    dvar = 0.5 * dstd/std 
+
+    dx1 = dx_hat/std + 2 * (x-mu) * dvar/len(dout)  
+    dmu = -np.sum(dx1,axis = 0) 
+
+    dx2 =  dmu/len(dout) 
+    dx = dx1  +  dx2
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
