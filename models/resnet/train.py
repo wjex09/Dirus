@@ -1,1 +1,2 @@
-def main():
+import torch
+import torchvision
